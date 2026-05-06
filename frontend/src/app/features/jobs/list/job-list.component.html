@@ -1,0 +1,211 @@
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Tìm việc freelance</h1>
+    <span class="text-sm text-gray-500">
+      {{ jobs()?.totalElements ?? 0 }} kết quả
+    </span>
+  </div>
+
+  <div class="grid md:grid-cols-[280px_1fr] gap-6">
+    <!-- Sidebar filter -->
+    <aside>
+      <div class="bg-white rounded-xl border border-gray-200 p-5 sticky top-20">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-semibold text-gray-800 text-sm">Bộ lọc</h2>
+          <button (click)="clearFilters()" class="text-xs text-indigo-600 hover:underline">Xoá tất cả</button>
+        </div>
+
+        <form [formGroup]="filterForm" class="space-y-5">
+          <!-- Keyword -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Tìm kiếm</label>
+            <input formControlName="keyword" type="text" placeholder="Từ khoá..."
+                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+          </div>
+
+          <!-- Category -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Danh mục</label>
+            <select formControlName="categoryId"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option [ngValue]="null">Tất cả</option>
+              @for (cat of categories(); track cat.id) {
+                <option [ngValue]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Skills -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Kỹ năng</label>
+            @if (selectedSkillIds().length) {
+              <div class="flex flex-wrap gap-1 mb-2">
+                @for (id of selectedSkillIds(); track id) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs">
+                    {{ getSkillName(id) }}
+                    <button type="button" (click)="toggleSkill(id)" class="hover:text-indigo-900">×</button>
+                  </span>
+                }
+              </div>
+            }
+            <input [value]="skillSearch()" (input)="skillSearch.set($any($event.target).value)"
+                   type="text" placeholder="Tìm kỹ năng..."
+                   class="w-full px-3 py-1.5 text-xs border border-gray-300 rounded-lg mb-1 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+            <div class="max-h-32 overflow-y-auto space-y-0.5">
+              @for (sk of filteredSkills; track sk.id) {
+                <label class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer text-sm">
+                  <input type="checkbox" [checked]="isSkillSelected(sk.id)"
+                         (change)="toggleSkill(sk.id)"
+                         class="rounded border-gray-300 text-indigo-600" />
+                  {{ sk.name }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Budget type -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Loại ngân sách</label>
+            <div class="space-y-1">
+              @for (opt of [['','Tất cả'],['FIXED','Cố định'],['HOURLY','Theo giờ']]; track opt[0]) {
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="radio" formControlName="budgetType" [value]="opt[0]"
+                         class="text-indigo-600" />
+                  {{ opt[1] }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Work mode -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Hình thức làm việc</label>
+            <div class="space-y-1">
+              @for (opt of [['','Tất cả'],['REMOTE','Từ xa'],['ONSITE','Tại chỗ'],['HYBRID','Kết hợp']]; track opt[0]) {
+                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="radio" formControlName="workMode" [value]="opt[0]"
+                         class="text-indigo-600" />
+                  {{ opt[1] }}
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Budget range -->
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Ngân sách (₫)</label>
+            <div class="flex gap-2">
+              <input formControlName="budgetMin" type="number" placeholder="Từ"
+                     class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+              <input formControlName="budgetMax" type="number" placeholder="Đến"
+                     class="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+            </div>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Job list -->
+    <main>
+      @if (loading()) {
+        <div class="flex justify-center py-20">
+          <app-loading-spinner size="lg" />
+        </div>
+      } @else if (!jobs()?.content?.length) {
+        <app-empty-state
+          title="Không tìm thấy job nào"
+          description="Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm"
+          actionLabel="Xoá bộ lọc"
+          (click)="clearFilters()" />
+      } @else {
+        <div class="grid gap-4">
+          @for (job of jobs()!.content; track job.id) {
+            <article class="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap mb-1">
+                    @if (job.category) {
+                      <span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
+                        {{ job.category.name }}
+                      </span>
+                    }
+                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
+                      {{ workModeLabel(job.workMode) }}
+                    </span>
+                    <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs">
+                      {{ budgetTypeLabel(job.budgetType) }}
+                    </span>
+                  </div>
+
+                  <a [routerLink]="['/jobs', job.id]"
+                     class="text-lg font-semibold text-gray-900 hover:text-indigo-600 transition-colors line-clamp-1">
+                    {{ job.title }}
+                  </a>
+
+                  <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ job.shortDescription }}</p>
+
+                  <!-- Skills -->
+                  @if (job.skills?.length) {
+                    <div class="flex flex-wrap gap-1 mt-3">
+                      @for (sk of job.skills.slice(0, 5); track sk.id) {
+                        <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{{ sk.name }}</span>
+                      }
+                      @if (job.skills.length > 5) {
+                        <span class="px-2 py-0.5 bg-gray-100 text-gray-400 rounded text-xs">+{{ job.skills.length - 5 }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Budget + time -->
+                <div class="text-right flex-shrink-0">
+                  <div class="text-base font-bold text-indigo-600">
+                    {{ job.budgetMin | currencyVnd }}
+                    @if (job.budgetMax && job.budgetMax !== job.budgetMin) {
+                      <span class="text-gray-400 font-normal text-sm"> – {{ job.budgetMax | currencyVnd }}</span>
+                    }
+                  </div>
+                  <div class="text-xs text-gray-400 mt-0.5">{{ job.createdAt | timeAgo }}</div>
+                </div>
+              </div>
+
+              <!-- Footer -->
+              <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                <div class="flex items-center gap-2">
+                  @if (job.client?.avatarUrl) {
+                    <img [src]="job.client.avatarUrl" class="h-6 w-6 rounded-full object-cover" />
+                  } @else {
+                    <div class="h-6 w-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-semibold">
+                      {{ job.client?.fullName?.charAt(0) }}
+                    </div>
+                  }
+                  <span class="text-xs text-gray-500">{{ job.client?.fullName }}</span>
+                  @if (job.location) {
+                    <span class="text-xs text-gray-400">· {{ job.location }}</span>
+                  }
+                </div>
+                <div class="flex items-center gap-3 text-xs text-gray-400">
+                  @if (job.deadline) {
+                    <span>Hạn: {{ job.deadline | date:'dd/MM/yyyy' }}</span>
+                  }
+                  <span>{{ job.applicationCount }} ứng tuyển</span>
+                  <a [routerLink]="['/jobs', job.id]"
+                     class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-medium hover:bg-indigo-700 transition-colors">
+                    Xem chi tiết
+                  </a>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+
+        <app-pagination
+          [currentPage]="jobs()!.number"
+          [totalPages]="jobs()!.totalPages"
+          [totalElements]="jobs()!.totalElements"
+          [pageSize]="12"
+          (pageChange)="onPageChange($event)" />
+      }
+    </main>
+  </div>
+</div>

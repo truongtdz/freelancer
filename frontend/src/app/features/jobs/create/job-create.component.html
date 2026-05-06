@@ -1,0 +1,220 @@
+<div class="max-w-3xl mx-auto px-4 py-8">
+  <div class="flex items-center gap-3 mb-6">
+    <a routerLink="/jobs" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="text-2xl font-bold text-gray-900">Đăng việc mới</h1>
+  </div>
+
+  <form [formGroup]="jobForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+    <!-- Section: Thông tin cơ bản -->
+    <section class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <h2 class="font-semibold text-gray-800">Thông tin cơ bản</h2>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề <span class="text-red-500">*</span></label>
+        <input formControlName="title" type="text" placeholder="VD: Xây dựng website bán hàng React"
+               class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+               [class.border-red-400]="f['title'].touched && f['title'].invalid"
+               [class.border-gray-300]="!(f['title'].touched && f['title'].invalid)" />
+        @if (f['title'].touched && f['title'].hasError('required')) {
+          <p class="text-xs text-red-500 mt-1">Tiêu đề là bắt buộc</p>
+        }
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-sm font-medium text-gray-700">Mô tả chi tiết <span class="text-red-500">*</span></label>
+          <button type="button" (click)="suggestDescription()" [disabled]="suggestingDesc()"
+                  class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-lg border border-violet-300 text-violet-600 bg-violet-50 hover:bg-violet-100 disabled:opacity-60 transition-colors">
+            @if (suggestingDesc()) {
+              <svg class="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 12h4z"/>
+              </svg>
+              <span>Đang tạo...</span>
+            } @else {
+              <span>✨ Gợi ý bằng AI</span>
+            }
+          </button>
+        </div>
+        <textarea formControlName="description" rows="6"
+                  placeholder="Mô tả yêu cầu công việc, kỹ năng cần thiết, kỳ vọng đầu ra..."
+                  class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  [class.border-red-400]="f['description'].touched && f['description'].invalid"
+                  [class.border-gray-300]="!(f['description'].touched && f['description'].invalid)"></textarea>
+        @if (f['description'].touched && f['description'].hasError('required')) {
+          <p class="text-xs text-red-500 mt-1">Mô tả là bắt buộc</p>
+        }
+        <p class="text-xs text-gray-400 text-right mt-0.5">{{ jobForm.value.description?.length ?? 0 }}/5000</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Danh mục <span class="text-red-500">*</span></label>
+        <select formControlName="categoryId"
+                class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                [class.border-red-400]="f['categoryId'].touched && f['categoryId'].invalid"
+                [class.border-gray-300]="!(f['categoryId'].touched && f['categoryId'].invalid)">
+          <option [ngValue]="null">-- Chọn danh mục --</option>
+          @for (cat of categories(); track cat.id) {
+            <option [ngValue]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
+    </section>
+
+    <!-- Section: Ngân sách -->
+    <section class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <h2 class="font-semibold text-gray-800">Ngân sách</h2>
+
+      <div class="flex gap-6">
+        @for (opt of [['FIXED','Cố định'],['HOURLY','Theo giờ']]; track opt[0]) {
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" formControlName="budgetType" [value]="opt[0]" class="text-indigo-600" />
+            <span class="text-sm font-medium">{{ opt[1] }}</span>
+          </label>
+        }
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ngân sách tối thiểu (₫) <span class="text-red-500">*</span></label>
+          <input formControlName="budgetMin" type="number" placeholder="100000"
+                 class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                 [class.border-red-400]="f['budgetMin'].touched && f['budgetMin'].invalid"
+                 [class.border-gray-300]="!(f['budgetMin'].touched && f['budgetMin'].invalid)" />
+          @if (f['budgetMin'].touched && f['budgetMin'].hasError('min')) {
+            <p class="text-xs text-red-500 mt-1">Tối thiểu 100.000 ₫</p>
+          }
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ngân sách tối đa (₫) <span class="text-red-500">*</span></label>
+          <input formControlName="budgetMax" type="number" placeholder="500000"
+                 class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                 [class.border-red-400]="f['budgetMax'].touched && f['budgetMax'].invalid"
+                 [class.border-gray-300]="!(f['budgetMax'].touched && f['budgetMax'].invalid)" />
+          @if (jobForm.hasError('budgetMaxLow') && f['budgetMax'].touched) {
+            <p class="text-xs text-red-500 mt-1">Phải >= ngân sách tối thiểu</p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Loại hình làm việc -->
+    <section class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <h2 class="font-semibold text-gray-800">Hình thức làm việc</h2>
+
+      <div class="flex gap-6">
+        @for (opt of [['REMOTE','Từ xa'],['ONSITE','Tại chỗ'],['HYBRID','Kết hợp']]; track opt[0]) {
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" formControlName="workMode" [value]="opt[0]" class="text-indigo-600" />
+            <span class="text-sm font-medium">{{ opt[1] }}</span>
+          </label>
+        }
+      </div>
+
+      @if (locationEnabled) {
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Địa điểm</label>
+          <input formControlName="location" type="text" placeholder="VD: Hà Nội, TP.HCM..."
+                 class="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      }
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Hạn nộp hồ sơ</label>
+        <input formControlName="deadline" type="date"
+               class="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      </div>
+    </section>
+
+    <!-- Section: Kỹ năng -->
+    <section class="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+      <h2 class="font-semibold text-gray-800">Kỹ năng yêu cầu <span class="text-red-500">*</span></h2>
+
+      @if (selectedSkillIds().length) {
+        <div class="flex flex-wrap gap-2">
+          @for (id of selectedSkillIds(); track id) {
+            <span class="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">
+              {{ getSkillName(id) }}
+              <button type="button" (click)="toggleSkill(id)" class="hover:text-indigo-900 ml-0.5">×</button>
+            </span>
+          }
+        </div>
+      }
+      @if (selectedSkillIds().length === 0 && jobForm.touched) {
+        <p class="text-xs text-red-500">Chọn ít nhất 1 kỹ năng</p>
+      }
+
+      <input [value]="skillSearch()" (input)="skillSearch.set($any($event.target).value)"
+             type="text" placeholder="Tìm kỹ năng..."
+             class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 max-h-48 overflow-y-auto">
+        @for (sk of filteredSkills; track sk.id) {
+          <label class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer text-sm">
+            <input type="checkbox" [checked]="isSkillSelected(sk.id)"
+                   (change)="toggleSkill(sk.id)" class="rounded text-indigo-600" />
+            {{ sk.name }}
+          </label>
+        }
+      </div>
+    </section>
+
+    <!-- Section: File đính kèm -->
+    <section class="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+      <h2 class="font-semibold text-gray-800">File đính kèm <span class="text-gray-400 font-normal text-sm">(tuỳ chọn, tối đa 5)</span></h2>
+
+      @if (uploadedFiles().length < 5) {
+        <label class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors">
+          @if (uploading()) {
+            <app-loading-spinner size="sm" />
+            <span class="mt-2 text-sm text-gray-500">Đang tải lên...</span>
+          } @else {
+            <svg class="h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <span class="text-sm text-gray-500">Kéo thả hoặc <span class="text-indigo-600 font-medium">chọn file</span></span>
+            <span class="text-xs text-gray-400 mt-1">PNG, JPG, PDF · Tối đa 10MB</span>
+          }
+          <input type="file" multiple accept="image/*,.pdf" class="hidden" (change)="onFileSelect($event)" />
+        </label>
+      }
+
+      @if (uploadedFiles().length) {
+        <div class="space-y-2">
+          @for (f of uploadedFiles(); track f.storedName) {
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <svg class="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-700 truncate">{{ f.fileName }}</p>
+              </div>
+              <button type="button" (click)="removeFile(f.storedName)"
+                      class="text-red-400 hover:text-red-600 text-xs px-2 py-1 rounded hover:bg-red-50">Xoá</button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3 pb-4">
+      <a routerLink="/jobs"
+         class="px-5 py-2.5 border border-gray-300 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+        Huỷ
+      </a>
+      <button type="submit" [disabled]="submitting()"
+              class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-60 flex items-center gap-2">
+        @if (submitting()) { <app-loading-spinner size="sm" /> }
+        {{ submitting() ? 'Đang đăng...' : 'Đăng job' }}
+      </button>
+    </div>
+  </form>
+</div>

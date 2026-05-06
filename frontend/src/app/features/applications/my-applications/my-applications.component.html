@@ -1,0 +1,130 @@
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Ứng tuyển của tôi</h1>
+    <a routerLink="/jobs"
+       class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      Tìm việc mới
+    </a>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+    @for (tab of tabs; track tab.value) {
+      <button (click)="setTab(tab.value)"
+              class="px-4 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+              [class.border-indigo-600]="activeTab() === tab.value"
+              [class.text-indigo-600]="activeTab() === tab.value"
+              [class.border-transparent]="activeTab() !== tab.value"
+              [class.text-gray-500]="activeTab() !== tab.value">
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-20"><app-loading-spinner size="lg" /></div>
+  } @else if (!apps()?.content?.length) {
+    <app-empty-state
+      title="Không có ứng tuyển nào"
+      description="Bạn chưa có ứng tuyển nào trong mục này"
+      actionLabel="Tìm việc ngay"
+      actionRoute="/jobs" />
+  } @else {
+    <div class="space-y-4">
+      @for (app of apps()!.content; track app.id) {
+        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-gray-300 transition-colors">
+
+          <!-- Header row -->
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div class="flex-1 min-w-0">
+              <a [routerLink]="['/jobs', app.jobId]"
+                 class="text-base font-semibold text-gray-900 hover:text-indigo-600 transition-colors line-clamp-1">
+                {{ app.jobTitle }}
+              </a>
+              <p class="text-xs text-gray-400 mt-0.5">{{ app.createdAt | timeAgo }}</p>
+            </div>
+            <span [class]="'px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ' + statusClass(app.status)">
+              {{ statusLabel(app.status) }}
+            </span>
+          </div>
+
+          <!-- Stats row -->
+          <div class="flex items-center gap-4 text-sm text-gray-600 mb-3 flex-wrap">
+            <div class="flex items-center gap-1">
+              <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="font-medium text-gray-800">{{ app.proposedPrice | currencyVnd }}</span>
+            </div>
+            <span class="text-gray-300">·</span>
+            <div class="flex items-center gap-1">
+              <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span>{{ app.estimatedDays }} ngày</span>
+            </div>
+            @if (app.attachmentUrl) {
+              <span class="text-gray-300">·</span>
+              <a [href]="app.attachmentUrl" target="_blank"
+                 class="text-indigo-600 hover:underline text-xs flex items-center gap-1">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                </svg>
+                Tệp đính kèm
+              </a>
+            }
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+            @if (app.status === 'PENDING') {
+              <button (click)="withdrawTarget.set(app)"
+                      class="px-3 py-1.5 text-xs font-medium border border-red-200 text-red-500 rounded-lg hover:bg-red-50 transition-colors">
+                Rút ứng tuyển
+              </button>
+            }
+            @if (app.status === 'ACCEPTED') {
+              <a routerLink="/my/contracts"
+                 class="text-xs text-green-600 font-medium flex items-center gap-1 mr-auto hover:text-green-700">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Đã được chấp nhận — xem hợp đồng
+              </a>
+            }
+            <a [routerLink]="['/jobs', app.jobId]"
+               class="px-3 py-1.5 text-xs font-medium border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">
+              Xem job
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+
+    <app-pagination
+      [currentPage]="apps()!.number"
+      [totalPages]="apps()!.totalPages"
+      [totalElements]="apps()!.totalElements"
+      [pageSize]="10"
+      (pageChange)="onPageChange($event)" />
+  }
+</div>
+
+<!-- Confirm withdraw dialog -->
+@if (withdrawTarget()) {
+  <app-confirm-dialog
+    title="Rút ứng tuyển"
+    [message]="'Bạn có chắc muốn rút ứng tuyển cho job &quot;' + withdrawTarget()!.jobTitle + '&quot;?'"
+    confirmLabel="Rút ứng tuyển"
+    cancelLabel="Huỷ"
+    [danger]="true"
+    (confirmed)="onWithdraw($event)" />
+}

@@ -1,0 +1,233 @@
+<div class="min-h-screen flex">
+  <!-- Left: gradient panel -->
+  <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800
+              flex-col items-center justify-center p-12 text-white">
+    <div class="max-w-md text-center">
+      <div class="flex items-center justify-center gap-3 mb-8">
+        <svg class="h-12 w-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span class="text-3xl font-bold">TopFreelancer</span>
+      </div>
+      <h2 class="text-2xl font-semibold mb-4">Tham gia cộng đồng</h2>
+      <p class="text-indigo-200 leading-relaxed">
+        Hàng nghìn freelancer và doanh nghiệp đã tìm thấy nhau trên TopFreelancer.
+        Bắt đầu hành trình của bạn ngay hôm nay!
+      </p>
+    </div>
+  </div>
+
+  <!-- Right: form -->
+  <div class="flex-1 flex items-center justify-center p-6 sm:p-12 bg-gray-50">
+    <div class="w-full max-w-md">
+
+      <!-- Mobile logo -->
+      <div class="lg:hidden flex items-center gap-2 mb-6 text-indigo-600 font-bold text-xl">
+        <svg class="h-7 w-7" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        TopFreelancer
+      </div>
+
+      <!-- Step 1: Role selection -->
+      @if (step() === 1) {
+        <h1 class="text-2xl font-bold text-gray-900 mb-1">Bạn là ai?</h1>
+        <p class="text-gray-500 text-sm mb-8">
+          Đã có tài khoản?
+          <a routerLink="/login" class="text-indigo-600 hover:underline font-medium">Đăng nhập</a>
+        </p>
+
+        <div class="grid grid-cols-1 gap-4">
+          <!-- Client card -->
+          <button (click)="selectRole(CLIENT)"
+                  class="group p-6 rounded-xl border-2 border-gray-200 bg-white text-left
+                         hover:border-indigo-500 hover:shadow-md transition-all">
+            <div class="flex items-start gap-4">
+              <div class="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center
+                          group-hover:bg-indigo-600 transition-colors flex-shrink-0">
+                <svg class="h-6 w-6 text-indigo-600 group-hover:text-white transition-colors"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5
+                           M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900 mb-1">Tôi là Client</h3>
+                <p class="text-sm text-gray-500">
+                  Tìm kiếm và thuê freelancer tài năng cho các dự án của bạn
+                </p>
+              </div>
+            </div>
+          </button>
+
+          <!-- Freelancer card -->
+          <button (click)="selectRole(FREELANCER)"
+                  class="group p-6 rounded-xl border-2 border-gray-200 bg-white text-left
+                         hover:border-indigo-500 hover:shadow-md transition-all">
+            <div class="flex items-start gap-4">
+              <div class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center
+                          group-hover:bg-indigo-600 transition-colors flex-shrink-0">
+                <svg class="h-6 w-6 text-purple-600 group-hover:text-white transition-colors"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="font-semibold text-gray-900 mb-1">Tôi là Freelancer</h3>
+                <p class="text-sm text-gray-500">
+                  Tìm kiếm công việc phù hợp và phát triển sự nghiệp tự do
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+      }
+
+      <!-- Step 2: Registration form -->
+      @if (step() === 2) {
+        <div class="flex items-center gap-3 mb-6">
+          <button (click)="backToRole()" class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Tạo tài khoản</h1>
+            <p class="text-sm text-gray-500">
+              Đăng ký với tư cách
+              <span class="font-medium text-indigo-600">
+                {{ selectedRole() === CLIENT ? 'Client' : 'Freelancer' }}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+          <!-- Full name -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+            <input formControlName="fullName" type="text" placeholder="Nguyễn Văn A"
+                   class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   [class.border-red-400]="fullName.touched && fullName.invalid"
+                   [class.border-gray-300]="!(fullName.touched && fullName.invalid)" />
+            @if (fullName.touched && fullName.hasError('required')) {
+              <p class="mt-1 text-xs text-red-500">Họ tên là bắt buộc</p>
+            }
+          </div>
+
+          <!-- Username -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tên đăng nhập</label>
+            <input formControlName="username" type="text" placeholder="username123"
+                   class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   [class.border-red-400]="username.touched && username.invalid"
+                   [class.border-gray-300]="!(username.touched && username.invalid)" />
+            @if (username.touched && username.hasError('required')) {
+              <p class="mt-1 text-xs text-red-500">Tên đăng nhập là bắt buộc</p>
+            } @else if (username.touched && username.hasError('pattern')) {
+              <p class="mt-1 text-xs text-red-500">Chỉ dùng chữ, số và dấu gạch dưới</p>
+            } @else if (username.touched && username.hasError('minlength')) {
+              <p class="mt-1 text-xs text-red-500">Tối thiểu 3 ký tự</p>
+            }
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input formControlName="email" type="email" placeholder="you@example.com"
+                   class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   [class.border-red-400]="email.touched && email.invalid"
+                   [class.border-gray-300]="!(email.touched && email.invalid)" />
+            @if (email.touched && email.hasError('required')) {
+              <p class="mt-1 text-xs text-red-500">Email là bắt buộc</p>
+            } @else if (email.touched && email.hasError('email')) {
+              <p class="mt-1 text-xs text-red-500">Email không hợp lệ</p>
+            }
+          </div>
+
+          <!-- Phone (optional) -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Số điện thoại <span class="text-gray-400 font-normal">(tuỳ chọn)</span>
+            </label>
+            <input formControlName="phone" type="tel" placeholder="0901234567"
+                   class="w-full px-4 py-2.5 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   [class.border-red-400]="phone.touched && phone.invalid"
+                   [class.border-gray-300]="!(phone.touched && phone.invalid)" />
+            @if (phone.touched && phone.hasError('pattern')) {
+              <p class="mt-1 text-xs text-red-500">Số điện thoại không hợp lệ (9-11 chữ số)</p>
+            }
+          </div>
+
+          <!-- Password -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu</label>
+            <div class="relative">
+              <input formControlName="password"
+                     [type]="showPassword() ? 'text' : 'password'"
+                     placeholder="••••••••"
+                     class="w-full px-4 py-2.5 pr-10 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                     [class.border-red-400]="password.touched && password.invalid"
+                     [class.border-gray-300]="!(password.touched && password.invalid)" />
+              <button type="button" (click)="togglePassword()"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
+                           -1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+            </div>
+            @if (password.touched && password.hasError('required')) {
+              <p class="mt-1 text-xs text-red-500">Mật khẩu là bắt buộc</p>
+            } @else if (password.touched && password.hasError('minlength')) {
+              <p class="mt-1 text-xs text-red-500">Tối thiểu 8 ký tự</p>
+            } @else if (password.touched && password.hasError('pattern')) {
+              <p class="mt-1 text-xs text-red-500">Cần có chữ hoa, chữ thường và số</p>
+            }
+          </div>
+
+          <!-- Confirm password -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Xác nhận mật khẩu</label>
+            <input formControlName="confirmPassword"
+                   [type]="showPassword() ? 'text' : 'password'"
+                   placeholder="••••••••"
+                   class="w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                   [class.border-red-400]="confirmPassword.touched && (confirmPassword.hasError('required') || form.hasError('passwordMismatch'))"
+                   [class.border-gray-300]="!(confirmPassword.touched && (confirmPassword.hasError('required') || form.hasError('passwordMismatch')))" />
+            @if (confirmPassword.touched && confirmPassword.hasError('required')) {
+              <p class="mt-1 text-xs text-red-500">Vui lòng xác nhận mật khẩu</p>
+            } @else if (confirmPassword.touched && form.hasError('passwordMismatch')) {
+              <p class="mt-1 text-xs text-red-500">Mật khẩu không khớp</p>
+            }
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" [disabled]="loading()"
+                  class="w-full py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg
+                         hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed
+                         flex items-center justify-center gap-2 mt-2">
+            @if (loading()) {
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+              </svg>
+            }
+            {{ loading() ? 'Đang đăng ký...' : 'Tạo tài khoản' }}
+          </button>
+
+          <p class="text-center text-sm text-gray-500 pt-1">
+            Đã có tài khoản?
+            <a routerLink="/login" class="text-indigo-600 hover:underline font-medium">Đăng nhập</a>
+          </p>
+        </form>
+      }
+
+    </div>
+  </div>
+</div>

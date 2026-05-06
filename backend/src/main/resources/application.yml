@@ -1,0 +1,75 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: freelancer-backend
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:freelancer_db}?TimeZone=Asia/Ho_Chi_Minh
+    username: ${DB_USER:freelancer_user}
+    password: ${DB_PASSWORD:freelancer_pass}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    out-of-order: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+      password: ${REDIS_PASSWORD:redis_pass}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${RABBITMQ_USER:freelancer_user}
+    password: ${RABBITMQ_PASS:freelancer_pass}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-min-256-bits-long-secret-key-please-set-in-prod}
+    expiration-ms: 604800000        # 7 ngày (accessToken-only, KHÔNG có refresh)
+  vnpay:
+    tmn-code: ${VNPAY_TMN_CODE:P723K335}
+    hash-secret: ${VNPAY_HASH_SECRET:6WE2OVQ4UIVHKRC7L29YMB2M7WZFWBQJ}
+    pay-url: ${VNPAY_PAY_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+    api-url: ${VNPAY_API_URL:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}
+    return-url: ${VNPAY_RETURN_URL:http://localhost:8080/api/vnpay/return}
+    frontend-success-url: ${VNPAY_FE_SUCCESS:http://localhost:4200/payment/success}
+    frontend-cancel-url: ${VNPAY_FE_CANCEL:http://localhost:4200/payment/cancel}
+    ipn-allowed-ips: ${VNPAY_IPN_ALLOWED_IPS:}
+    expire-minutes: 15
+  upload:
+    dir: ${UPLOAD_DIR:./uploads}
+    base-url: ${UPLOAD_BASE_URL:http://localhost:8080/uploads}
+  commission:
+    default-rate: 10
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:4200}
+  gemini:
+    api-key: ${GEMINI_API_KEY:AIzaSyCaK5-OaiwYZdBV3kid4jr5gVjjBNvikYo}
+    model: ${GEMINI_MODEL:gemini-flash-latest}
+  rabbitmq:
+    exchange: ${RABBITMQ_EXCHANGE:freelancer.exchange}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.freelancer: INFO
+    org.springframework.security: INFO

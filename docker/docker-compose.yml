@@ -1,0 +1,164 @@
+name: freelancer
+
+services:
+
+  # ─────────────────────────── PostgreSQL ───────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: freelancer-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [freelancer-net]
+
+  # ─────────────────────────── Redis ────────────────────────────────────────
+
+  redis:
+    image: redis:7-alpine
+    container_name: freelancer-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [freelancer-net]
+
+  # ─────────────────────────── RabbitMQ ─────────────────────────────────────
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: freelancer-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"    # Management UI
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [freelancer-net]
+
+  # ─────────────────────────── Backend (port 8080) ──────────────────────────
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: source/docker/Dockerfile.backend
+    container_name: freelancer-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:  { condition: service_healthy }
+      redis:     { condition: service_healthy }
+      rabbitmq:  { condition: service_healthy }
+    environment:
+      # Database
+      DB_HOST:     postgres
+      DB_NAME:     ${POSTGRES_DB}
+      DB_USER:     ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Redis
+      REDIS_HOST:     redis
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      # JWT
+      JWT_SECRET: ${JWT_SECRET}
+      # VNPay
+      VNPAY_TMN_CODE:       ${VNPAY_TMN_CODE}
+      VNPAY_HASH_SECRET:    ${VNPAY_HASH_SECRET}
+      VNPAY_PAY_URL:        ${VNPAY_PAY_URL}
+      VNPAY_API_URL:        ${VNPAY_API_URL}
+      VNPAY_RETURN_URL:     ${VNPAY_RETURN_URL}
+      VNPAY_FE_SUCCESS:     ${VNPAY_FE_SUCCESS}
+      VNPAY_FE_CANCEL:      ${VNPAY_FE_CANCEL}
+      VNPAY_IPN_ALLOWED_IPS: ${VNPAY_IPN_ALLOWED_IPS:-}
+      # Upload
+      UPLOAD_DIR:      ${UPLOAD_DIR}
+      UPLOAD_BASE_URL: ${UPLOAD_BASE_URL}
+      # CORS
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      # Timezone
+      TZ: Asia/Ho_Chi_Minh
+    volumes:
+      - ../uploads:/app/uploads    # persist across rebuilds
+    ports:
+      - "8080:8080"
+    networks: [freelancer-net]
+
+  # ─────────────────────────── Notification Service (port 8081) ────────────
+
+  notification:
+    build:
+      context: ../..
+      dockerfile: source/docker/Dockerfile.notification
+    container_name: freelancer-notification
+    restart: unless-stopped
+    depends_on:
+      postgres:  { condition: service_healthy }
+      rabbitmq:  { condition: service_healthy }
+      backend:   { condition: service_started }   # wait for BE to apply Flyway migrations
+    environment:
+      DB_HOST:     postgres
+      DB_NAME:     ${POSTGRES_DB}
+      DB_USER:     ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "8081:8081"
+    networks: [freelancer-net]
+
+  # ─────────────────────────── Frontend (port 4200) ─────────────────────────
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: source/docker/Dockerfile.frontend
+      args:
+        API_BASE_URL: http://localhost:8080/api
+    container_name: freelancer-frontend
+    restart: unless-stopped
+    depends_on:
+      backend: { condition: service_started }
+    ports:
+      - "4200:80"
+    networks: [freelancer-net]
+
+# ─────────────────────────── Volumes & Networks ───────────────────────────
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+
+networks:
+  freelancer-net:
+    driver: bridge

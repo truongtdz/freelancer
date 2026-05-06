@@ -1,0 +1,22 @@
+-- V902: Seed skills
+INSERT INTO skills (name, slug) VALUES
+  ('Java', 'java'),
+  ('Spring Boot', 'spring-boot'),
+  ('Angular', 'angular'),
+  ('React', 'react'),
+  ('Vue.js', 'vuejs'),
+  ('Node.js', 'nodejs'),
+  ('Python', 'python'),
+  ('Django', 'django'),
+  ('PostgreSQL', 'postgresql'),
+  ('MySQL', 'mysql'),
+  ('MongoDB', 'mongodb'),
+  ('Docker', 'docker'),
+  ('Kubernetes', 'kubernetes'),
+  ('AWS', 'aws'),
+  ('UI/UX Design', 'ui-ux-design'),
+  ('Figma', 'figma'),
+  ('Mobile (Flutter)', 'flutter'),
+  ('Mobile (React Native)', 'react-native'),
+  ('Content Writing', 'content-writing'),
+  ('SEO', 'seo');

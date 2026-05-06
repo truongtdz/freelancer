@@ -1,0 +1,100 @@
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Hợp đồng của tôi</h1>
+    <a routerLink="/jobs"
+       class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      Tìm việc
+    </a>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto">
+    @for (tab of tabs; track tab.value) {
+      <button (click)="setTab(tab.value)"
+              class="px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 transition-colors"
+              [class.border-indigo-600]="activeTab() === tab.value"
+              [class.text-indigo-600]="activeTab() === tab.value"
+              [class.border-transparent]="activeTab() !== tab.value"
+              [class.text-gray-500]="activeTab() !== tab.value">
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-20"><app-loading-spinner size="lg" /></div>
+  } @else if (!data()?.content?.length) {
+    <app-empty-state
+      title="Không có hợp đồng nào"
+      description="Chưa có hợp đồng trong mục này" />
+  } @else {
+    <div class="space-y-4">
+      @for (c of data()!.content; track c.id) {
+        <div class="bg-white rounded-xl border border-gray-200 p-5 hover:border-gray-300 transition-colors">
+
+          <!-- Header -->
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex-1 min-w-0">
+              <a [routerLink]="['/contracts', c.id]"
+                 class="text-base font-semibold text-gray-900 hover:text-indigo-600 transition-colors line-clamp-1">
+                {{ c.jobTitle }}
+              </a>
+              <p class="text-xs text-gray-400 mt-0.5">{{ c.contractCode }}</p>
+            </div>
+            <span [class]="'px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ' + statusClass(c.status)">
+              {{ statusLabel(c.status) }}
+            </span>
+          </div>
+
+          <!-- Counterparty + price + dates -->
+          <div class="flex items-center gap-3 text-sm text-gray-600 mb-4 flex-wrap">
+            <div class="flex items-center gap-1">
+              <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              <a [routerLink]="['/profile', c.counterparty.id]"
+                 class="hover:text-indigo-600">{{ c.counterparty.fullName }}</a>
+            </div>
+            <span class="text-gray-300">·</span>
+            <span class="font-semibold text-gray-900">{{ c.agreedPrice | currencyVnd }}</span>
+            <span class="text-gray-300">·</span>
+            <span class="text-xs text-gray-400">{{ c.startDate }} → {{ c.endDate }}</span>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+            @if (c.status === 'PENDING_PAYMENT') {
+              <button (click)="pay(c)"
+                      [disabled]="payingId() === c.id"
+                      class="px-4 py-2 text-sm font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-60 transition-colors flex items-center gap-2">
+                @if (payingId() === c.id) {
+                  <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                  </svg>
+                }
+                Thanh toán ngay
+              </button>
+            }
+            <a [routerLink]="['/contracts', c.id]"
+               class="px-3 py-1.5 text-xs font-medium border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">
+              Chi tiết
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+
+    <app-pagination
+      [currentPage]="data()!.number"
+      [totalPages]="data()!.totalPages"
+      [totalElements]="data()!.totalElements"
+      [pageSize]="10"
+      (pageChange)="onPageChange($event)" />
+  }
+</div>

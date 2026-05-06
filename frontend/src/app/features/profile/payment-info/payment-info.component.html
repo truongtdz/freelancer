@@ -1,0 +1,146 @@
+<div class="max-w-2xl mx-auto px-4 py-8">
+
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <a routerLink="/profile/me" class="text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <h1 class="text-xl font-bold text-gray-900">Tài khoản ngân hàng</h1>
+    </div>
+    @if (!showForm()) {
+      <button (click)="openForm()"
+              class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+        + Thêm tài khoản
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-20"><app-loading-spinner size="lg" /></div>
+  } @else {
+
+    <!-- Payment info list -->
+    @if (paymentInfos().length) {
+      <div class="space-y-3 mb-6">
+        @for (info of paymentInfos(); track info.id) {
+          <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="flex items-start gap-4">
+              <!-- Bank icon placeholder -->
+              <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
+                <span class="text-indigo-600 font-bold text-sm">🏦</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <p class="font-semibold text-gray-900 text-sm">{{ info.bankName }}</p>
+                  @if (info.isDefault) {
+                    <span class="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">Mặc định</span>
+                  }
+                </div>
+                <p class="text-sm text-gray-500 font-mono">{{ info.bankAccountNumber }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">{{ info.bankAccountHolder }}</p>
+              </div>
+              @if (info.qrCodeUrl) {
+                <img [src]="info.qrCodeUrl" alt="QR Code"
+                     class="w-16 h-16 rounded-lg border border-gray-200 object-contain shrink-0"/>
+              }
+              <button (click)="delete(info.id)"
+                      class="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (!showForm()) {
+      <div class="text-center py-16 text-gray-400 bg-white rounded-xl border border-gray-200">
+        <p class="text-4xl mb-3">🏦</p>
+        <p class="text-sm font-medium text-gray-500 mb-1">Chưa có tài khoản ngân hàng</p>
+        <p class="text-xs">Thêm tài khoản để nhận thanh toán từ hợp đồng</p>
+      </div>
+    }
+
+    <!-- Add form -->
+    @if (showForm()) {
+      <div class="bg-white rounded-xl border border-indigo-200 p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-5">Thêm tài khoản ngân hàng</h2>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Tên ngân hàng *</label>
+            <input [(ngModel)]="bankName" type="text"
+                   placeholder="VD: Vietcombank, Techcombank, MBBank"
+                   class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Số tài khoản *</label>
+            <input [(ngModel)]="bankAccountNumber" type="text"
+                   placeholder="VD: 0123456789"
+                   class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 font-mono"/>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Chủ tài khoản *</label>
+            <input [(ngModel)]="bankAccountHolder" type="text"
+                   placeholder="VD: NGUYEN VAN A"
+                   class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 uppercase"/>
+          </div>
+
+          <!-- QR Code upload -->
+          <div>
+            <label class="block text-xs font-medium text-gray-700 mb-1.5">Mã QR chuyển khoản (tuỳ chọn)</label>
+            @if (qrCodeUrl) {
+              <div class="flex items-center gap-3 mb-2">
+                <img [src]="qrCodeUrl" alt="QR" class="w-20 h-20 rounded-lg border border-gray-200 object-contain"/>
+                <button type="button" (click)="qrCodeUrl = ''"
+                        class="text-xs text-red-500 hover:text-red-700">Xoá QR</button>
+              </div>
+            }
+            <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-colors">
+              @if (uploadingQr()) {
+                <app-loading-spinner size="sm" />
+                Đang upload...
+              } @else {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                Tải ảnh QR lên
+              }
+              <input type="file" accept="image/*" class="hidden" [disabled]="uploadingQr()"
+                     (change)="onQrFile($event)"/>
+            </label>
+          </div>
+
+          <!-- Default toggle -->
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="isDefault"
+                   class="w-4 h-4 rounded border-gray-300 text-indigo-600 accent-indigo-600"/>
+            <span class="text-sm text-gray-700">Đặt làm tài khoản mặc định</span>
+          </label>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button type="button" (click)="cancel()"
+                  class="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+            Huỷ
+          </button>
+          <button type="button" (click)="save()"
+                  [disabled]="saving() || uploadingQr()"
+                  class="flex-1 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+            @if (saving()) {
+              <app-loading-spinner size="sm" />
+              Đang lưu...
+            } @else {
+              Lưu tài khoản
+            }
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>

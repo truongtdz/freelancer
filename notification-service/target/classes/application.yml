@@ -1,0 +1,45 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/${DB_NAME:freelancer_db}
+    username: ${DB_USER:freelancer_user}
+    password: ${DB_PASSWORD:freelancer_pass}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: 5672
+    username: ${RABBITMQ_USER:freelancer_user}
+    password: ${RABBITMQ_PASS:freelancer_pass}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+app:
+  rabbitmq:
+    exchange: freelancer.exchange
+    queue: notification.queue
+    routing-key: "notification.#"
+
+logging:
+  level:
+    com.freelancer.notification: DEBUG

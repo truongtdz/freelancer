@@ -1,0 +1,28 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+  <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+
+    <!-- Icon -->
+    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Thanh toán thành công!</h1>
+    <p class="text-gray-600 mb-1">Hợp đồng của bạn đã được kích hoạt.</p>
+    @if (txnRef()) {
+      <p class="text-xs text-gray-400 mb-6">Mã giao dịch: {{ txnRef() }}</p>
+    }
+
+    <div class="flex flex-col gap-3">
+      <a routerLink="/my/contracts"
+         class="w-full px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors">
+        Xem hợp đồng của tôi
+      </a>
+      <a routerLink="/jobs"
+         class="w-full px-4 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+        Về trang chủ
+      </a>
+    </div>
+  </div>
+</div>

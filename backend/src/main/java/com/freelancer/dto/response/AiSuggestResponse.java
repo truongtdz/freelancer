@@ -1,0 +1,12 @@
+package com.freelancer.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class AiSuggestResponse {
+    private String suggestion;
+}
