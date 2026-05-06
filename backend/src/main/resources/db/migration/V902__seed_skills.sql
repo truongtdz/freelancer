@@ -19,4 +19,5 @@ INSERT INTO skills (name, slug) VALUES
   ('Mobile (Flutter)', 'flutter'),
   ('Mobile (React Native)', 'react-native'),
   ('Content Writing', 'content-writing'),
-  ('SEO', 'seo');
+  ('SEO', 'seo')
+ON CONFLICT (name) DO NOTHING;

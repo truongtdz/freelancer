@@ -21,7 +21,8 @@ VALUES
    'freelancer@freelance.local',
    '$2a$10$5b.EsQOEPAp465MBqhRKNeR94arrwNfrhJRJMz1.ag.dH6v4/LGcC',
    'Trần Thị B', '0902222222', 'FREELANCER', 'ACTIVE', TRUE,
-   CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+   CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO user_profiles (user_id, bio, title, experience_years, hourly_rate, rating_avg, total_reviews, total_jobs_done)
 SELECT
@@ -36,7 +37,8 @@ SELECT
   CASE role WHEN 'FREELANCER' THEN 250000 ELSE NULL END,
   0, 0, 0
 FROM users
-WHERE email IN ('admin@freelance.local', 'client@freelance.local', 'freelancer@freelance.local');
+WHERE email IN ('admin@freelance.local', 'client@freelance.local', 'freelancer@freelance.local')
+ON CONFLICT (user_id) DO NOTHING;
 
 -- System settings mặc định
 INSERT INTO system_settings (setting_key, setting_value, description, updated_at)
@@ -44,4 +46,5 @@ VALUES
   ('commission_rate', '10', 'Phần trăm hoa hồng hệ thống (%)', CURRENT_TIMESTAMP),
   ('max_submission_attempts', '3', 'Số lần nộp bài tối đa', CURRENT_TIMESTAMP),
   ('contract_payment_timeout_hours', '24', 'Timeout thanh toán contract (giờ)', CURRENT_TIMESTAMP),
-  ('auto_confirm_days', '7', 'Tự xác nhận hoàn thành sau N ngày', CURRENT_TIMESTAMP);
+  ('auto_confirm_days', '7', 'Tự xác nhận hoàn thành sau N ngày', CURRENT_TIMESTAMP)
+ON CONFLICT (setting_key) DO NOTHING;
